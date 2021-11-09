@@ -91,6 +91,7 @@ class HomeFragment : Fragment() {
 //                        result.text = barcode.valueAt(0).displayValue
                         val str: String = barcode.valueAt(0).displayValue
                         result.text = str
+                        val rawStr: String = barcode.valueAt(0).rawValue
 
                         if (str.contains("http") || str.contains("https")) {
                             AlertDialog.Builder(requireContext())
@@ -104,6 +105,31 @@ class HomeFragment : Fragment() {
                                     intent.action = Intent.ACTION_VIEW
                                     intent.data = Uri.parse(str)
                                     startActivity(intent)
+                                }
+                                .show()
+                        } else if (str.substring(0,4) == "1922") {
+                            val intent = Intent()
+                            intent.action = Intent.ACTION_SENDTO
+                            intent.data = Uri.parse("smsto:1922")
+                            intent.putExtra("sms_body", str.substring(5))
+                            startActivity(intent)
+                        } else if (rawStr.contains("SMSTO:", true)) {
+                            AlertDialog.Builder(requireContext())
+                                .setTitle("傳送簡訊")
+                                .setMessage("請先確認掃描的QR code來源安全，按下確認後會傳送簡訊")
+                                .setPositiveButton(
+                                    "確認"
+                                ) { dialog, which ->
+                                    val firstColon = rawStr.indexOf(':')
+                                    val secColon = rawStr.indexOf(':',firstColon+1)
+                                    val intent = Intent()
+                                    intent.action = Intent.ACTION_SENDTO
+                                    intent.data = Uri.parse(rawStr.substring(0,secColon).toLowerCase())
+                                    intent.putExtra("sms_body", rawStr.substring(secColon+1))
+                                    startActivity(intent)
+                                }
+                                .setNegativeButton("取消") { dialog, which ->
+                                    dialog.dismiss()
                                 }
                                 .show()
                         }
